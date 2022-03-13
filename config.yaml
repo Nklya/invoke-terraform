@@ -1,0 +1,5 @@
+---
+init:
+  arch:
+    - darwin_amd64
+    - linux_amd64
