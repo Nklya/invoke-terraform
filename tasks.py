@@ -1,4 +1,4 @@
-"""invoke-terraform helpers v0.3"""
+"""invoke-terraform helpers v0.4"""
 
 from glob import glob
 from os import getcwd, path
@@ -23,10 +23,11 @@ def load_cfg(root):
     help={
         "force": "Force refresh .terraform.lock.hcl",
         "clean": "Clean .terraform folder and lock file before",
+        "extra": "Extra parameters to pass to terraform init",
         "dry": "Dry run only",
     }
 )
-def init(c, force=False, clean=False, dry=False):
+def init(c, force=False, clean=False, extra="", dry=False):
     """
     terraform init wrapper
     """
@@ -47,12 +48,13 @@ def init(c, force=False, clean=False, dry=False):
         force = True
     # init S3 backend
     if "s3" in cfg_data["init"]:
-        cmd = 'terraform init -input=false -backend-config="key={}" -backend-config="bucket={}" -backend-config="dynamodb_table={}" -backend-config="region={}" -backend-config="profile={}"'.format(
+        cmd = 'terraform init -backend-config="key={}/terraform.tfstate" -backend-config="bucket={}" -backend-config="dynamodb_table={}" -backend-config="region={}" -backend-config="profile={}" {}'.format(
             cfg_path,
             cfg_data["init"]["s3"]["bucket"],
             cfg_data["init"]["s3"]["dynamodb"],
             cfg_data["init"]["s3"]["region"],
             cfg_data["init"]["s3"]["profile"],
+            extra,
         )
         if path.exists(path.join(curr, ".static")):
             print("This configuration do not use dynamic backend state, skip...")
