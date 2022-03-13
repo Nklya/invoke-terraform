@@ -1,4 +1,4 @@
-"""invoke-terraform helpers v0.2"""
+"""invoke-terraform helpers v0.3"""
 
 from glob import glob
 from os import getcwd, path
@@ -32,8 +32,10 @@ def init(c, force=False, clean=False, dry=False):
     """
     curr = getcwd()
     root = get_root(c)
+    cfg_path = path.relpath(curr, root)
     cfg_data = load_cfg(root)
-    print("terraform init wrapper")
+    print(f"terraform init wrapper, path: '{cfg_path}'")
+
     if not glob(path.join(curr, "*.tf")):
         print("No terraform files found in current path, exit...")
         exit(1)
@@ -43,18 +45,30 @@ def init(c, force=False, clean=False, dry=False):
     if force or not path.exists(path.join(curr, ".terraform.lock.hcl")):
         print(".terraform.lock.hcl will be updated")
         force = True
-    # terraform init
-    if not dry:
-        if force:
-            c.run("terraform init", env={"TF_PLUGIN_CACHE_DIR": ""})
+    # init S3 backend
+    if "s3" in cfg_data["init"]:
+        cmd = 'terraform init -input=false -backend-config="key={}" -backend-config="bucket={}" -backend-config="dynamodb_table={}" -backend-config="region={}" -backend-config="profile={}"'.format(
+            cfg_path,
+            cfg_data["init"]["s3"]["bucket"],
+            cfg_data["init"]["s3"]["dynamodb"],
+            cfg_data["init"]["s3"]["region"],
+            cfg_data["init"]["s3"]["profile"],
+        )
+        if path.exists(path.join(curr, ".static")):
+            print("This configuration do not use dynamic backend state, skip...")
+        elif not dry:
+            if force:
+                c.run(cmd, env={"TF_PLUGIN_CACHE_DIR": ""})
+            else:
+                c.run(cmd)
         else:
-            c.run("terraform init")
+            print(f"Dry run, cmdline: '{cmd}'")
     else:
-        print("Dry run, skip...")
+        print("Only S3 backend supported, exit...")
+        exit(1)
     # lock file update
     if force:
         c.run(
             f"terraform providers lock {' '.join([f'-platform={i}' for i in cfg_data['init']['arch']])}",
-            dry=dry,
             env={"TF_PLUGIN_CACHE_DIR": ""},
         )
