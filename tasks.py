@@ -1,4 +1,4 @@
-"""invoke-terraform helpers v0.4"""
+"""invoke-terraform helpers v0.5"""
 
 from glob import glob
 from os import getcwd, path
@@ -48,12 +48,14 @@ def init(c, force=False, clean=False, extra="", dry=False):
         force = True
     # init S3 backend
     if "s3" in cfg_data["init"]:
-        cmd = 'terraform init -backend-config="key={}/terraform.tfstate" -backend-config="bucket={}" -backend-config="dynamodb_table={}" -backend-config="region={}" -backend-config="profile={}" {}'.format(
+        cmd = 'terraform init -backend-config="key={}/terraform.tfstate" {} {}'.format(
             cfg_path,
-            cfg_data["init"]["s3"]["bucket"],
-            cfg_data["init"]["s3"]["dynamodb"],
-            cfg_data["init"]["s3"]["region"],
-            cfg_data["init"]["s3"]["profile"],
+            " ".join(
+                [
+                    f'-backend-config="{k}={v}"'
+                    for k, v in cfg_data["init"]["s3"].items()
+                ]
+            ),
             extra,
         )
         if path.exists(path.join(curr, ".static")):
