@@ -8,8 +8,10 @@ Invoke helper for different terraform related stuff
 
 ## How to start
 
+* terraform 0.14+ supported (use tfenv to switch between versions)
 * ensure that you have python 3.6+ installed
 * install dependencies by `pip install -r requirements.txt`
+* S3 bucket only supported so far as state backend
 
 ## Tasks
 
