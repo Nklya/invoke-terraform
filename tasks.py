@@ -1,7 +1,8 @@
-"""invoke-terraform helpers v0.5"""
+"""invoke-terraform helpers v0.6"""
 
 from glob import glob
 from os import getcwd, path
+from subprocess import PIPE, STDOUT, Popen
 
 from invoke import task
 from yaml import YAMLError, safe_load
@@ -19,11 +20,29 @@ def load_cfg(root):
             print(exc)
 
 
+def filter_run(
+    cmd,
+    begin="\x1b[1m\x1b[36mNote:\x1b[0m\x1b[1m Objects have changed outside of Terraform",
+    end="─────────────────────────────────────────────────────────────────────────────",
+):
+    "Background run to filter output in realtime"
+    skip = False
+    p = Popen(cmd, stdout=PIPE, stderr=STDOUT, universal_newlines=True)
+    for line in iter(p.stdout.readline, ""):
+        if line.startswith(begin):
+            skip = True
+        elif line.startswith(end) and skip:
+            skip = False
+            print(f"'{begin}' has been excluded from output")
+        if not skip:
+            print(line.rstrip())
+
+
 @task(
     help={
         "force": "Force refresh .terraform.lock.hcl",
         "clean": "Clean .terraform folder and lock file before",
-        "extra": "Extra parameters to pass to terraform init",
+        "extra": "Extra parameters to pass to terraform",
         "dry": "Dry run only",
     }
 )
@@ -71,8 +90,42 @@ def init(c, force=False, clean=False, extra="", dry=False):
         print("Only S3 backend supported, exit...")
         exit(1)
     # lock file update
-    if force:
+    if force and not dry:
         c.run(
             f"terraform providers lock {' '.join([f'-platform={i}' for i in cfg_data['init']['arch']])}",
             env={"TF_PLUGIN_CACHE_DIR": ""},
         )
+
+
+@task(
+    help={
+        "extra": "Extra parameters to pass to terraform",
+        "dry": "Dry run only",
+    }
+)
+def plan(c, extra="", dry=False):
+    """
+    terraform plan wrapper
+    """
+    cmd = ["terraform", "plan"] + (extra.split(" ") if extra else [])
+    if dry:
+        print(f"Dry run, cmdline: '{' '.join(cmd)}'")
+    else:
+        filter_run(cmd)
+
+
+@task(
+    help={
+        "extra": "Extra parameters to pass to terraform",
+        "dry": "Dry run only",
+    }
+)
+def apply(c, extra="", dry=False):
+    """
+    terraform apply wrapper
+    """
+    cmd = ["terraform", "apply"] + (extra.split(" ") if extra else [])
+    if dry:
+        print(f"Dry run, cmdline: '{' '.join(cmd)}'")
+    else:
+        filter_run(cmd)
