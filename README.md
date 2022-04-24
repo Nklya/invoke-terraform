@@ -16,3 +16,10 @@ Invoke helper for different terraform related stuff
 ## Tasks
 
 * To get list of all supported tasks, run: `inv --list`
+
+## Docs
+
+To find more on why this project was created and how to use, check these articles:
+
+* [Better make for automation](https://link.medium.com/Ujzts51Bupb)
+* [Fix ‘Objects have changed outside of Terraform’ with invoke wrapper](https://link.medium.com/GGsOdW3Bupb)
