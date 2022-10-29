@@ -23,3 +23,5 @@ To find more on why this project was created and how to use, check these article
 
 * [Better make for automation](https://link.medium.com/Ujzts51Bupb)
 * [Fix ‘Objects have changed outside of Terraform’ with invoke wrapper](https://link.medium.com/GGsOdW3Bupb)
+* [Exclude ‘Objects have changed outside of Terraform’ from GitHub Actions output](https://nklya.medium.com/exclude-objects-have-changed-outside-of-terraform-from-github-actions-output-705f84a3482c)
+* [How CODEOWNERS really work](https://nklya.medium.com/how-codeowners-really-work-2eda82a430a4)

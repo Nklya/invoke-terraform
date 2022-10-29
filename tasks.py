@@ -1,9 +1,10 @@
-"""invoke-terraform helpers v0.6"""
+"""invoke-terraform helpers v0.7"""
 
 from glob import glob
 from os import getcwd, path
 from subprocess import PIPE, STDOUT, Popen
 
+from codeowners import CodeOwners
 from invoke import task
 from yaml import YAMLError, safe_load
 
@@ -129,3 +130,17 @@ def apply(c, extra="", dry=False):
         print(f"Dry run, cmdline: '{' '.join(cmd)}'")
     else:
         filter_run(cmd)
+
+
+@task(
+    help={
+        "folder": "Path to the folder/file to check",
+    }
+)
+def codeowners(c, folder):
+    """
+    CODEOWNERS check helper
+    """
+    with open(path.join(get_root(c), "CODEOWNERS"), "r") as file:
+        owner = CodeOwners(file.read())
+    print(owner.of(folder))
