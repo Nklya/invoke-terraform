@@ -5,6 +5,7 @@ from os import getcwd, path
 from subprocess import PIPE, STDOUT, Popen
 
 from codeowners import CodeOwners
+from git import Repo
 from invoke import task
 from yaml import YAMLError, safe_load
 
@@ -144,3 +145,16 @@ def codeowners(c, folder):
     with open(path.join(get_root(c), "CODEOWNERS"), "r") as file:
         owner = CodeOwners(file.read())
     print(owner.of(folder))
+
+
+@task()
+def diff(c):
+    """
+    Show changed things in PR
+    """
+    change = {"A": "Added", "D": "Deleted", "M": "Modified"}
+
+    r = Repo(get_root(c))
+    print("Changed in this branch:")
+    for i in r.index.diff("origin/main", R=True):
+        print(f"File: {i.a_path}, change: {change.get(i.change_type, i.change_type)}")
