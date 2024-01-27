@@ -2,7 +2,7 @@
 init:
   s3:
     bucket: terraform-state
-    dynamodb: terraform-lock
+    dynamodb_table: terraform-lock
     region: us-east-1
     profile: default
   arch:

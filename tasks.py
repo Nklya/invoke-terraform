@@ -1,4 +1,4 @@
-"""invoke-terraform helpers v0.7"""
+"""invoke-terraform helpers v0.8"""
 
 from glob import glob
 from os import getcwd, path
@@ -158,3 +158,11 @@ def diff(c):
     print("Changed in this branch:")
     for i in r.index.diff("origin/main", R=True):
         print(f"File: {i.a_path}, change: {change.get(i.change_type, i.change_type)}")
+
+
+@task
+def docs(c):
+    """
+    terraform-docs wrapper
+    """
+    c.run("terraform-docs markdown . > README.md")
